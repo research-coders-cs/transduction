@@ -79,16 +79,14 @@ def generate_heatmap(attention_maps):
 
 
 def generate_attention_heatmap(im_orig, mask):
-    mask_stacked = torch.tensor([mask[:,:]], dtype=torch.float32)
-    #print('@@ mask_stacked.shape:', mask_stacked.shape)  # torch.Size([1, 224, 224])
-
-    mask_stacked = torch.stack([mask_stacked], dim=0)
-    #print('@@ mask_stacked.shape:', mask_stacked.shape)  # -> torch.Size([1, 1, 224, 224])
+    # mask is a NumPy array of shape (224, 224)
+    mask_stacked = torch.from_numpy(mask).float()
+    mask_stacked = mask_stacked.unsqueeze(0).unsqueeze(0)  # (1, 1, 224, 224)
 
     heatmap_stacked = generate_heatmap(mask_stacked)
 
-    orig_stacked = torch.tensor([im_orig[:,:]], dtype=torch.float32).permute(0, 3, 1, 2)
-    #print('@@ orig_stacked.shape:', orig_stacked.shape)  # torch.Size([1, 3, 224, 224])
+    orig_stacked = torch.from_numpy(im_orig).float().permute(2, 0, 1).unsqueeze(0)
+    # (1, 3, 224, 224)
 
     return ((orig_stacked * 0.3) + (heatmap_stacked.cpu() * 0.7))[0]
 
